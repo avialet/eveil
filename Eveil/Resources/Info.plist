@@ -37,7 +37,9 @@
 	<string>public.app-category.productivity</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>26.0</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Éveil regarde si un fichier en cours de téléchargement grossit, pour garder le Mac éveillé jusqu’à la fin. Il ne lit ni n’envoie rien d’autre.</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>&#xA9; 2026 Aur&#xE9;lien Vialet</string>
+	<string>© 2026 Aurélien Vialet</string>
 </dict>
 </plist>
