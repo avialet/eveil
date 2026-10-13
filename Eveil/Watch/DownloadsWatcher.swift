@@ -3,7 +3,7 @@ import EveilCore
 
 /// Session << tant qu'un telechargement avance >> : releve toutes les 15 s des fichiers partiels des
 /// navigateurs dans les dossiers surveilles (Telechargements par defaut, `EVEIL_DOWNLOADS_PATH` pour les
-/// essais), confie a `PartialDownloads`. Lire Telechargements declenche la demande d'acces de macOS
+/// essais en DEBUG), confie a `PartialDownloads`. Lire Telechargements declenche la demande d'acces de macOS
 /// au premier usage (NSDownloadsFolderUsageDescription).
 @MainActor
 final class DownloadsWatcher {
@@ -17,9 +17,12 @@ final class DownloadsWatcher {
     var isRunning: Bool { tracker != nil }
 
     static var defaultFolder: URL {
+        #if DEBUG
+        // Essais : un dossier jetable a la place de Telechargements (jamais en version distribuee).
         if let path = ProcessInfo.processInfo.environment["EVEIL_DOWNLOADS_PATH"], !path.isEmpty {
             return URL(fileURLWithPath: path, isDirectory: true)
         }
+        #endif
         return FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads")
     }
