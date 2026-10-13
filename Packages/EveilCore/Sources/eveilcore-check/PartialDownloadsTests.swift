@@ -57,6 +57,24 @@ let partialDownloadsTests: (String, [Test]) = ("PartialDownloads", [
         for i in 0..<20 { d.record(["vieux.crdownload": 4096], at: t(Double(i) * 15)) }
         expect(d.isFinished(at: t(300)))
     },
+    Test("resumeGetsFreshGrace") {
+        // Reprise (mise a jour) d'une session lancee 10 min plus tot, partiel present sans progres au
+        // premier releve. Suivi parti du debut de session : arret immediat (ce qu'on evite).
+        let resumedAt = t(600)
+        var fromSessionStart = PartialDownloads(start: t0)
+        fromSessionStart.record(["a.part": 500], at: resumedAt)
+        expect(fromSessionStart.isFinished(at: resumedAt))
+        // Suivi parti de la reprise (choix d'Eveil) : 2 min de grace pour constater un progres.
+        var fromResume = PartialDownloads(start: resumedAt)
+        fromResume.record(["a.part": 500], at: resumedAt)
+        expect(!fromResume.isFinished(at: resumedAt.addingTimeInterval(119)))
+        fromResume.record(["a.part": 900], at: resumedAt.addingTimeInterval(15))
+        expect(!fromResume.isFinished(at: resumedAt.addingTimeInterval(15 + 119)))
+        // Sans progres, la grace ne dure pas : arret 2 min apres la reprise.
+        var stalled = PartialDownloads(start: resumedAt)
+        stalled.record(["a.part": 500], at: resumedAt)
+        expect(stalled.isFinished(at: resumedAt.addingTimeInterval(120)))
+    },
     Test("completedDownloadDisappears") {
         var d = PartialDownloads(start: t0)
         d.record(["a.part": 1], at: t(0))

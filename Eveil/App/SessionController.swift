@@ -157,7 +157,11 @@ final class SessionController {
         lastStop = nil
         downloadActive = false
         if session.kind == .download {
-            DownloadsWatcher.shared.start(since: session.start)
+            // Suivi parti de maintenant, pas du debut de session : apres une reprise (mise a jour), un
+            // partiel deja la ne compte pas comme un progres au premier releve et le suivi depuis le
+            // debut arreterait la session aussitot. Deux minutes de grace pour voir un progres, au plus
+            // (voir PartialDownloadsTests.resumeGetsFreshGrace). Nouvelle session : maintenant = debut.
+            DownloadsWatcher.shared.start(since: now)
         } else {
             DownloadsWatcher.shared.stop()
         }
