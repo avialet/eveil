@@ -24,6 +24,18 @@ let resumePolicyTests: (String, [Test]) = ("ResumePolicy", [
         let s = Session.start(.minutes(15), keepDisplayOn: true, now: at(2026, 10, 14, 14, 0), calendar: paris)
         expectEqual(ResumePolicy.decide(SavedSession(session: s, bootTime: boot), bootTime: boot, now: now), .discard)
     },
+    Test("relaunchRightAfterQuitResumes") {
+        // Mise a jour : l'app quitte puis se relance dans la minute.
+        let s = Session.start(.indefinite, keepDisplayOn: true, now: at(2026, 10, 14, 14, 40), calendar: paris)
+        let saved = SavedSession(session: s, bootTime: boot, quitAt: now.addingTimeInterval(-20))
+        expectEqual(ResumePolicy.decide(saved, bootTime: boot, now: now), .resume(s))
+    },
+    Test("relaunchLongAfterQuitDiscards") {
+        // Quitter arrete la session : une relance plus tard repart au repos.
+        let s = Session.start(.indefinite, keepDisplayOn: true, now: at(2026, 10, 14, 14, 0), calendar: paris)
+        let saved = SavedSession(session: s, bootTime: boot, quitAt: now.addingTimeInterval(-ResumePolicy.relaunchWindow - 1))
+        expectEqual(ResumePolicy.decide(saved, bootTime: boot, now: now), .discard)
+    },
     Test("encodeDecode") {
         let s = Session.start(.download, keepDisplayOn: false, now: now, calendar: paris)
         let saved = SavedSession(session: s, bootTime: boot)
