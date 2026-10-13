@@ -28,7 +28,7 @@ public enum ResumeDecision: Equatable, Sendable {
 /// redemarre, qu'elle n'est pas finie et, si l'app a quitte, qu'elle a ete relancee dans la minute
 /// (une mise a jour se relance seule ; quitter a la main arrete la session) ; sinon l'abandonner.
 public enum ResumePolicy {
-    /// Ecart toleré sur l'heure de demarrage relue (arrondis de `timeval`).
+    /// Ecart tolere sur l'heure de demarrage relue (arrondis de `timeval`).
     public static let bootTolerance: TimeInterval = 1
     /// Delai de relance apres une sortie (mise a jour : quelques secondes).
     public static let relaunchWindow: TimeInterval = 60

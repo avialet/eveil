@@ -1,6 +1,6 @@
 import Foundation
 
-/// Heuristique << tant qu'un telechargement avance >> : relevés successifs des fichiers partiels des
+/// Heuristique << tant qu'un telechargement avance >> : releves successifs des fichiers partiels des
 /// navigateurs (nom -> taille). Actif si un partiel a grossi (ou est apparu) dans les 90 dernieres
 /// secondes ; fini apres 2 min sans croissance (depuis le debut de la session s'il n'y en a eu aucune).
 /// Un partiel abandonne ne grossit plus : il ne tient pas le Mac eveille.
