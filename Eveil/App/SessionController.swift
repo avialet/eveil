@@ -144,6 +144,9 @@ final class SessionController {
                               downloadsFinished: session.kind == .download && DownloadsWatcher.shared.isFinished(at: date))
         if case .stop(let reason) = Evaluator.evaluate(session, signals, rules: Prefs.batteryRules) {
             stop(reason)
+        } else {
+            // Trace de vie (lastSeen) : apres un plantage ancien, la session n'est pas reprise.
+            save()
         }
     }
 
@@ -214,7 +217,8 @@ final class SessionController {
 
     private func save(quitAt: Date? = nil) {
         guard let session, let boot = BootTime.current(),
-              let data = try? SavedSession(session: session, bootTime: boot, quitAt: quitAt).encoded() else { return }
+              let data = try? SavedSession(session: session, bootTime: boot, quitAt: quitAt, lastSeen: now).encoded()
+        else { return }
         UserDefaults.standard.set(data, forKey: Prefs.session)
     }
 

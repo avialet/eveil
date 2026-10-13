@@ -36,6 +36,24 @@ let resumePolicyTests: (String, [Test]) = ("ResumePolicy", [
         let saved = SavedSession(session: s, bootTime: boot, quitAt: now.addingTimeInterval(-ResumePolicy.relaunchWindow - 1))
         expectEqual(ResumePolicy.decide(saved, bootTime: boot, now: now), .discard)
     },
+    Test("recentLastSeenResumesAfterCrash") {
+        // Plantage : pas d'heure de sortie, mais la derniere trace a moins d'une minute.
+        let s = Session.start(.indefinite, keepDisplayOn: true, now: at(2026, 10, 14, 14, 0), calendar: paris)
+        let saved = SavedSession(session: s, bootTime: boot, lastSeen: now.addingTimeInterval(-20))
+        expectEqual(ResumePolicy.decide(saved, bootTime: boot, now: now), .resume(s))
+    },
+    Test("staleLastSeenDiscardsAfterOldCrash") {
+        // Plantage ancien : pas de session fantome reprise des heures plus tard.
+        let s = Session.start(.indefinite, keepDisplayOn: true, now: at(2026, 10, 14, 9, 0), calendar: paris)
+        let saved = SavedSession(session: s, bootTime: boot, lastSeen: now.addingTimeInterval(-ResumePolicy.relaunchWindow - 1))
+        expectEqual(ResumePolicy.decide(saved, bootTime: boot, now: now), .discard)
+    },
+    Test("quitAtWinsOverLastSeen") {
+        let s = Session.start(.indefinite, keepDisplayOn: true, now: at(2026, 10, 14, 9, 0), calendar: paris)
+        let saved = SavedSession(session: s, bootTime: boot, quitAt: now.addingTimeInterval(-10),
+                                 lastSeen: now.addingTimeInterval(-3600))
+        expectEqual(ResumePolicy.decide(saved, bootTime: boot, now: now), .resume(s))
+    },
     Test("encodeDecode") {
         let s = Session.start(.download, keepDisplayOn: false, now: now, calendar: paris)
         let saved = SavedSession(session: s, bootTime: boot)
