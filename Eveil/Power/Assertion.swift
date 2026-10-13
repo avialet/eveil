@@ -5,9 +5,10 @@ import IOKit.pwr_mgt
 /// `keepDisplayOn` : PreventUserIdleDisplaySleep (ecran allume, Mac eveille), sinon
 /// PreventUserIdleSystemSleep (ecran libre de s'eteindre, Mac eveille). Relachee au `deinit` ; l'OS
 /// la relache aussi a la mort du processus et, avec `timeout`, meme si l'app est figee.
-/// Visible dans `pmset -g assertions` sous le nom << Eveil >> (avec accent).
+/// Visible dans `pmset -g assertions` sous le nom << Eveil >>, en ASCII : pmset ecrit en MacRoman et
+/// afficherait l'accent en caractere illisible (le motif lisible porte la phrase d'etat).
 final class PowerAssertion {
-    static let name = "\u{00C9}veil"
+    static let name = "Eveil"
 
     let id: IOPMAssertionID
     let keepsDisplayOn: Bool

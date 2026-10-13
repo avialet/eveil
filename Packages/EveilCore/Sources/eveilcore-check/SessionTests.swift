@@ -10,6 +10,15 @@ let sessionTests: (String, [Test]) = ("Session", [
         expect(s.keepDisplayOn)
         expect(s.canExtend)
     },
+    Test("recordsPowerStateAtStart") {
+        let s = Session.start(.minutes(60), keepDisplayOn: true, now: at(2026, 10, 14, 14, 40), calendar: paris,
+                              lowPowerMode: true, batteryPercent: 15)
+        expect(s.startedInLowPower)
+        expectEqual(s.batteryAtStart, 15)
+        let plain = Session.start(.minutes(60), keepDisplayOn: true, now: at(2026, 10, 14, 14, 40), calendar: paris)
+        expect(!plain.startedInLowPower)
+        expect(plain.batteryAtStart == nil)
+    },
     Test("untilChoiceUsesNextOccurrence") {
         let s = Session.start(.until(hour: 9, minute: 0), keepDisplayOn: true, now: at(2026, 10, 14, 22, 0), calendar: paris)
         expectEqual(s.kind, .until)

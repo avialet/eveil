@@ -53,16 +53,31 @@ public struct Session: Codable, Equatable, Sendable {
     public var end: Date?
     /// Session << tant qu'une app tourne >> : l'app a ete vue ouverte (avant, on l'attend).
     public var appSeen: Bool
+    /// Mode Economie d'energie deja actif au debut : la session a ete voulue ainsi, il ne l'arrete pas.
+    public var startedInLowPower: Bool
+    /// Charge de la batterie au debut (nil sans batterie) : sous le seuil, la regle ne s'applique pas.
+    public var batteryAtStart: Int?
 
-    public init(kind: SessionKind, keepDisplayOn: Bool, start: Date, end: Date? = nil, appSeen: Bool = false) {
+    public init(kind: SessionKind, keepDisplayOn: Bool, start: Date, end: Date? = nil, appSeen: Bool = false,
+                startedInLowPower: Bool = false, batteryAtStart: Int? = nil) {
         self.kind = kind
         self.keepDisplayOn = keepDisplayOn
         self.start = start
         self.end = end
         self.appSeen = appSeen
+        self.startedInLowPower = startedInLowPower
+        self.batteryAtStart = batteryAtStart
     }
 
-    public static func start(_ choice: SessionChoice, keepDisplayOn: Bool, now: Date, calendar: Calendar) -> Session {
+    public static func start(_ choice: SessionChoice, keepDisplayOn: Bool, now: Date, calendar: Calendar,
+                             lowPowerMode: Bool = false, batteryPercent: Int? = nil) -> Session {
+        var session = make(choice, keepDisplayOn: keepDisplayOn, now: now, calendar: calendar)
+        session.startedInLowPower = lowPowerMode
+        session.batteryAtStart = batteryPercent
+        return session
+    }
+
+    private static func make(_ choice: SessionChoice, keepDisplayOn: Bool, now: Date, calendar: Calendar) -> Session {
         switch choice {
         case .minutes(let minutes):
             Session(kind: .duration(minutes: minutes), keepDisplayOn: keepDisplayOn, start: now,

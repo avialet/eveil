@@ -54,16 +54,17 @@ public enum Verdict: Equatable, Sendable {
 }
 
 /// Decide si une session continue. Ordre : fin atteinte, debranchement (session secteur), batterie,
-/// Economie d'energie, app quittee, telechargements finis.
+/// Economie d'energie, app quittee, telechargements finis. Batterie et Economie d'energie ne jouent que
+/// s'ils surviennent pendant la session : deja la au debut, la session a ete demandee en connaissance de cause.
 public enum Evaluator {
     public static func evaluate(_ session: Session, _ signals: Signals, rules: BatteryRules) -> Verdict {
         if let end = session.end, signals.now >= end { return .stop(.ended) }
         if session.kind == .power, !signals.onACPower { return .stop(.unplugged) }
         if !signals.onACPower, let threshold = rules.stopBelow, let percent = signals.batteryPercent,
-           percent < threshold {
+           percent < threshold, (session.batteryAtStart ?? 100) >= threshold {
             return .stop(.batteryLow(percent))
         }
-        if rules.stopInLowPowerMode, signals.lowPowerMode { return .stop(.lowPowerMode) }
+        if rules.stopInLowPowerMode, signals.lowPowerMode, !session.startedInLowPower { return .stop(.lowPowerMode) }
         switch session.kind {
         case .app(_, let name):
             if !signals.appRunning, session.appSeen { return .stop(.appQuit(name)) }

@@ -78,7 +78,10 @@ final class SessionController {
         case .download: UserDefaults.standard.set(true, forKey: Prefs.downloadsUsed)
         default: break
         }
-        begin(Session.start(choice, keepDisplayOn: keep, now: now, calendar: calendar))
+        let power = PowerSource.shared
+        power.refresh()
+        begin(Session.start(choice, keepDisplayOn: keep, now: now, calendar: calendar,
+                            lowPowerMode: power.lowPowerMode, batteryPercent: power.onACPower ? nil : power.batteryPercent))
     }
 
     /// Bascule du raccourci : arreter, ou reprendre la derniere duree.

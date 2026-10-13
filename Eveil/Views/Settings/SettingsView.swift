@@ -87,7 +87,7 @@ private struct BatteryCard: View {
             .onChange(of: stopBelow) { SessionController.shared.evaluate() }
             Toggle("Arr\u{00EA}ter en mode \u{00C9}conomie d\u{2019}\u{00E9}nergie", isOn: $stopInLowPower)
                 .onChange(of: stopInLowPower) { SessionController.shared.evaluate() }
-            note("Sur secteur, la charge ne compte pas. Une session \u{00AB}\u{00A0}sur secteur\u{00A0}\u{00BB} s\u{2019}arr\u{00EA}te d\u{00E8}s qu\u{2019}on d\u{00E9}branche.")
+            note("Sur batterie seulement, quand la charge passe sous le seuil ou que le mode s\u{2019}active pendant une session. Une session \u{00AB}\u{00A0}sur secteur\u{00A0}\u{00BB} s\u{2019}arr\u{00EA}te d\u{00E8}s qu\u{2019}on d\u{00E9}branche.")
         }
     }
 }

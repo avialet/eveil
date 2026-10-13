@@ -44,8 +44,11 @@ final class MainWindowController {
         window.isReleasedWhenClosed = false
         window.backgroundColor = NSColor(Theme.paper)
         window.contentView = hosting
-        window.setFrameAutosaveName("EveilMain")
-        if !window.setFrameUsingName("EveilMain") { window.center() }
+        // Taille du contenu (la fenetre suit ensuite le panneau qui se deplie), centree a l'ouverture.
+        hosting.layoutSubtreeIfNeeded()
+        let fitting = hosting.fittingSize
+        window.setContentSize(fitting.width > 0 && fitting.height > 0 ? fitting : NSSize(width: EveilPanel.width, height: 520))
+        window.center()
         return window
     }
 }

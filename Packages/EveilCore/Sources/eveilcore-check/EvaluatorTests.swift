@@ -39,6 +39,20 @@ let evaluatorTests: (String, [Test]) = ("Evaluator", [
         expectEqual(Evaluator.evaluate(s, signals(lowPower: true),
                                        rules: BatteryRules(stopBelow: 20, stopInLowPowerMode: false)), .keep)
     },
+    Test("lowPowerAlreadyOnAtStartIsAccepted") {
+        // Demander une session en mode Economie d'energie : c'est voulu, on ne l'arrete que s'il s'active ensuite.
+        var s = session(.minutes(60))
+        s.startedInLowPower = true
+        expectEqual(Evaluator.evaluate(s, signals(lowPower: true), rules: rules), .keep)
+    },
+    Test("batteryAlreadyLowAtStartIsAccepted") {
+        // Lancee a 15 % avec un seuil de 20 % : voulu ; macOS gere la batterie critique.
+        var s = session(.indefinite)
+        s.batteryAtStart = 15
+        expectEqual(Evaluator.evaluate(s, signals(onAC: false, battery: 12), rules: rules), .keep)
+        s.batteryAtStart = 40
+        expectEqual(Evaluator.evaluate(s, signals(onAC: false, battery: 19), rules: rules), .stop(.batteryLow(19)))
+    },
     Test("endBeatsBattery") {
         expectEqual(Evaluator.evaluate(session(.minutes(15)), signals(20, onAC: false, battery: 3), rules: rules),
                     .stop(.ended))
