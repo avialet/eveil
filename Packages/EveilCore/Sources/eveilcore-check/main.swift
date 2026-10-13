@@ -1,5 +1,10 @@
 import EveilCore
 
 run([
-    databaseTests,
+    endClockTests,
+    sessionTests,
+    evaluatorTests,
+    partialDownloadsTests,
+    statusTextTests,
+    resumePolicyTests,
 ])
