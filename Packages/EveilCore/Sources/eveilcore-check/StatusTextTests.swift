@@ -66,6 +66,8 @@ let statusTextTests: (String, [Test]) = ("StatusText", [
                     "Arr\u{00EA}t\u{00E9} \u{00E0} 15\(nbsp)h\(nbsp)40\(nbsp): plus de t\u{00E9}l\u{00E9}chargement en cours")
         expectEqual(StatusText.stopped(.lowPowerMode, at: t, calendar: paris),
                     "Arr\u{00EA}t\u{00E9} \u{00E0} 15\(nbsp)h\(nbsp)40\(nbsp): mode \u{00C9}conomie d\u{2019}\u{00E9}nergie")
+        expectEqual(StatusText.stopped(.refused, at: t, calendar: paris),
+                    "macOS a refus\u{00E9} de garder le Mac \u{00E9}veill\u{00E9}")
         expectEqual(StatusText.stopped(.user, at: t, calendar: paris), "Arr\u{00EA}t\u{00E9} \u{00E0} 15\(nbsp)h\(nbsp)40")
     },
     Test("hubStatus") {

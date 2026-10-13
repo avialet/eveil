@@ -46,6 +46,8 @@ public enum StopReason: Codable, Equatable, Sendable {
     case unplugged
     case appQuit(String)
     case downloadsDone
+    /// macOS a refuse l'assertion d'energie : la session n'a jamais tenu le Mac eveille.
+    case refused
 }
 
 public enum Verdict: Equatable, Sendable {

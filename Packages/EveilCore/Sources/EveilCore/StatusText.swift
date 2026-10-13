@@ -81,6 +81,7 @@ public enum StatusText {
         case .unplugged: return "\(stopped)\(nbsp): chargeur d\u{00E9}branch\u{00E9}"
         case .appQuit(let name): return "\(stopped)\(nbsp): \(name) a \u{00E9}t\u{00E9} quitt\u{00E9}"
         case .downloadsDone: return "\(stopped)\(nbsp): plus de t\u{00E9}l\u{00E9}chargement en cours"
+        case .refused: return "macOS a refus\u{00E9} de garder le Mac \u{00E9}veill\u{00E9}"
         }
     }
 

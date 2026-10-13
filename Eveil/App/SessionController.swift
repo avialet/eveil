@@ -183,6 +183,11 @@ final class SessionController {
         let timeout = session.end.map { $0.timeIntervalSince(now) + 60 }
         assertion = nil
         assertion = PowerAssertion(keepDisplayOn: session.keepDisplayOn, reason: reason, timeout: timeout)
+        // Assertion refusee : ne jamais afficher une session qui ne tient pas le Mac eveille.
+        guard assertion != nil else {
+            stop(.refused)
+            return
+        }
         endTimer?.invalidate()
         endTimer = nil
         if let end = session.end {
