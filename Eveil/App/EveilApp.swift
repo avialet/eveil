@@ -4,38 +4,49 @@ import VialetKit
 @main
 struct EveilApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var state = AppState.shared
-    @AppStorage(Brand.key("MenuBar")) private var menuBarVisible = true
+    @State private var presence = MenuBarPresence.shared
+    @State private var controller = SessionController.shared
 
     /// Teintes de l'app avant le premier rendu (et police Bricolage Grotesque des titres).
     init() { Theme.configure(Brand.palette) }
 
     var body: some Scene {
-        Window(Brand.displayName, id: "main") {
-            MainWindow()
-                .environment(state)
-                .fontDesign(.rounded)
-                .frame(minWidth: 640, minHeight: 420)
-                .onAppear { AppearanceChoice.current(defaultsKey: Brand.key("Appearance")).apply(defaultsKey: Brand.key("Appearance")) }
-                .captureOpenWindow()
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowBackgroundDragBehavior(.enabled)
-        .defaultSize(width: 860, height: 560)
-        .commands { AboutCommands(identity: Brand.identity) }
-
         Settings {
             SettingsView()
         }
+        .commands {
+            AboutCommands(identity: Brand.identity)
+            UpdateCommands(updater: .shared)
+        }
 
-        MenuBarExtra(isInserted: $menuBarVisible) {
-            MenuBarContent().environment(state)
+        MenuBarExtra(isInserted: menuBarInserted) {
+            EveilPanel(context: .menuBar)
         } label: {
-            if Brand.glyph.isEmpty {
-                Image(systemName: "app.dashed") // repli tant que le glyphe n'est pas dessine
-            } else {
-                MenuBarIcon(glyph: Brand.glyph)
-            }
+            MenuBarLabel(active: controller.isActive)
+        }
+        .menuBarExtraStyle(.window)
+    }
+
+    /// Mode Automatique propre a Eveil : sans Vialet, l'icone est toujours la ; avec Vialet, seulement
+    /// pendant une session (indicateur et arret en un clic). Toujours et Jamais comme dans les autres apps.
+    /// Retirer l'icone de la barre (Cmd-glisser) passe en Jamais.
+    private var menuBarInserted: Binding<Bool> {
+        let presence = presence, controller = controller
+        return Binding(get: {
+            Self.inserted(presence, active: controller.isActive)
+        }, set: { newValue in
+            guard newValue != Self.inserted(presence, active: controller.isActive) else { return }
+            presence.mode = newValue ? .shown : .hidden
+        })
+    }
+
+    @MainActor
+    private static func inserted(_ presence: MenuBarPresence, active: Bool) -> Bool {
+        guard !AppDelegate.isSnapshot else { return false }
+        switch presence.mode {
+        case .shown: return true
+        case .hidden: return false
+        case .auto: return !presence.hubInstalled || active
         }
     }
 }

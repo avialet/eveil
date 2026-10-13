@@ -1,50 +1,100 @@
 import AppKit
+import EveilCore
 import VialetKit
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    /// Mode capture (DEBUG) : ni assertion, ni icone, ni raccourci, ni reseau.
+    static var isSnapshot: Bool {
         #if DEBUG
-        // Mode capture : ni raccourci global, ni reseau.
+        SnapshotRequest.parse(prefix: Brand.name, arguments: CommandLine.arguments) != nil
+        #else
+        false
+        #endif
+    }
+
+    /// Une URL `eveil://` a lance ou reveille l'app : pas de fenetre d'office.
+    private var receivedURL = false
+
+    /// Actions servies par URL sans etre proposees dans Vialet.
+    private let hiddenActions: [String: @MainActor () -> Void] = [
+        "15min": { SessionController.shared.start(.minutes(15)) },
+        "2h": { SessionController.shared.start(.minutes(120)) },
+        "telechargement": { SessionController.shared.start(.download) },
+    ]
+
+    /// Avant toute URL recue au lancement (`open -g eveil://1h`) : actions et session prets.
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        Prefs.register()
+        MainWindowController.shared.install()
+        guard !Self.isSnapshot else { return }
+        let actions = AppActions.shared
+        actions.register(AppAction("1h", title: "1\u{00A0}h", symbol: "sun.max")) {
+            SessionController.shared.start(.minutes(60))
+        }
+        actions.register(AppAction("sans-fin", title: "Sans fin", symbol: "infinity")) {
+            SessionController.shared.start(.indefinite)
+        }
+        actions.register(AppAction("arreter", title: "Arr\u{00EA}ter", symbol: "stop.circle")) {
+            SessionController.shared.stop()
+        }
+        SessionController.shared.launch()
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        AppearanceChoice.current(defaultsKey: Brand.key("Appearance")).apply(defaultsKey: Brand.key("Appearance"))
+        #if DEBUG
         if runSnapshotIfRequested() { return }
         #endif
-        HotKeyController.shared.start { WindowSummoner.toggle() }
+        AppActions.shared.publish()
+        if UserDefaults.standard.bool(forKey: Prefs.hotKeyEnabled) { EveilHotKey.apply(true) }
+        // Lancement ordinaire (Finder, Spotlight, Dock) : la fenetre. Pas pour une URL ni a la connexion.
+        let showWindow = Self.isOrdinaryLaunch(NSAppleEventManager.shared().currentAppleEvent)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            MainActor.assumeIsolated {
+                if showWindow, !self.receivedURL { MainWindowController.shared.show() }
+            }
+        }
         // Laisse l'app s'afficher avant le moindre appel reseau.
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
             MainActor.assumeIsolated { Updater.shared.checkAutomatically() }
         }
     }
 
-    /// Liens `eveil://` : ouvre la fenetre principale.
-    func application(_ application: NSApplication, open urls: [URL]) {
-        WindowSummoner.show()
+    /// Evenement d'ouverture ordinaire : << oapp >> qui n'est pas une ouverture a la connexion.
+    private static func isOrdinaryLaunch(_ event: NSAppleEventDescriptor?) -> Bool {
+        guard let event else { return true }
+        guard event.eventClass == AEEventClass(kCoreEventClass), event.eventID == AEEventID(kAEOpenApplication) else {
+            return false
+        }
+        let property = event.paramDescriptor(forKeyword: AEKeyword(keyAEPropData))?.enumCodeValue
+        return property != OSType(keyAELaunchedAsLogInItem)
     }
 
-    /// L'app reste disponible (raccourci global, barre des menus) fenetre fermee.
+    /// Liens `eveil://` : actions de Vialet (`1h`, `sans-fin`, `arreter`), actions cachees (`15min`, `2h`,
+    /// `telechargement`), `open` et `update`.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        receivedURL = true
+        guard !Self.isSnapshot else { return }
+        for url in urls {
+            if case .action(let id)? = AppURLCommand.parse(url, scheme: AppActions.shared.scheme),
+               let perform = hiddenActions[id] {
+                perform()
+            } else {
+                AppActions.shared.handle(url)
+            }
+        }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        SessionController.shared.terminate()
+    }
+
+    /// Fermer la fenetre ne quitte pas : la session continue.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if !flag { WindowSummoner.show() }
+        if !flag { MainWindowController.shared.show() }
         return true
     }
 }
-
-#if DEBUG
-/// Mode capture sans ecran (voir SnapshotRunner) : `Eveil -EveilSnapshot <dossier>
-/// [-EveilSnapshotSeed 1] [-EveilSnapshotAppearance dark] [-EveilSnapshotOnly a,b]
-/// [-EveilSnapshotSize 1000x720]`, avec EVEIL_DB_PATH vers une base jetable. Ecrit
-/// `mainWindow`, `settings` et `about` (`-sombre` en sombre) dans le dossier, puis quitte.
-extension AppDelegate {
-    func runSnapshotIfRequested() -> Bool {
-        guard SnapshotRequest.parse(prefix: Brand.name, arguments: CommandLine.arguments) != nil else { return false }
-        if UserDefaults.standard.bool(forKey: Brand.key("SnapshotSeed")) { seed() }
-        let standard = SnapshotRunner.standardScenarios(mainWindow: { WindowSummoner.mainWindow }, identity: Brand.identity)
-        // Scenarios propres a l'app : `+ [SnapshotScenario("detail") { ...; return WindowSummoner.mainWindow }]`.
-        return SnapshotRunner.runIfRequested(prefix: Brand.name, scenarios: standard)
-    }
-
-    /// Exemples neutres pour les captures, sans donnee personnelle (chaines en echappements ASCII).
-    private func seed() {
-    }
-}
-#endif

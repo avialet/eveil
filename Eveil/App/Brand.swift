@@ -34,3 +34,13 @@ extension HotKeyController {
     static let shared = HotKeyController(defaultsKey: Brand.key("HotKey"), logName: Brand.displayName,
                                          initial: .space([.control, .shift, .command]))
 }
+
+extension MenuBarPresence {
+    static let shared = MenuBarPresence(app: Brand.identity)
+}
+
+extension AppActions {
+    /// `eveil://` et `eveil://open` montrent la fenetre ; `eveil://update` cherche une mise a jour.
+    static let shared = AppActions(Brand.identity, open: { MainWindowController.shared.show() },
+                                   checkForUpdates: { MainWindowController.shared.show(); Updater.shared.check() })
+}
