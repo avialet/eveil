@@ -11,8 +11,8 @@ enum Brand {
                                        deep: 0x043237, pale: 0xDCF8FB,
                                        night: 0x001F23, nightInk: 0xA9E4EA)
     /// Pictogramme de la plaque : sous-ensemble SVG absolu (M L H V C Q Z), boite 0-100, trait non rempli.
-    /// Vide = initiale en repli. Dessiner le trace, verifier avec `swift ../scripts/plaque.swift planche`, puis `make icon`.
-    static let glyph = ""
+    /// Soleil levant : horizon, demi-disque et trois rayons.
+    static let glyph = "M 14 70 H 86 M 30 70 C 30 58.95 38.95 50 50 50 C 61.05 50 70 58.95 70 70 M 50 30 V 40 M 22 42 L 29 49 M 78 42 L 71 49"
     /// Trait du glyphe en `deep` plutot qu'en blanc (accent trop clair pour un trait blanc).
     static let strokeDeep = false
     static let identity = AppIdentity(name: name, displayName: displayName, repository: "avialet/eveil",
@@ -29,8 +29,8 @@ extension Updater {
 }
 
 extension HotKeyController {
-    /// Choisir un raccourci libre : ⇧⌘Espace (Pico), ⌃⌥⌘Espace (Allege), ⌃⇧Espace (Pince) et ⌥⇧Espace (Brouillon)
-    /// sont deja pris. Mettre a jour la ligne « Raccourci global » du README.
+    /// Facultatif (desactive par defaut, `EveilHotKeyEnabled`) : Ctrl-Maj-Cmd-Espace bascule entre la
+    /// derniere duree et l'arret. Libre parmi les apps vialet.app.
     static let shared = HotKeyController(defaultsKey: Brand.key("HotKey"), logName: Brand.displayName,
-                                         initial: .space([.control, .option, .shift]))
+                                         initial: .space([.control, .shift, .command]))
 }
