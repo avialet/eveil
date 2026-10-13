@@ -1,0 +1,5 @@
+import EveilCore
+
+run([
+    databaseTests,
+])
