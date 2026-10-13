@@ -14,11 +14,11 @@
 
 ## Ce que fait Éveil
 
-<!-- a adapter : trois idees, une phrase chacune -->
-
-- **Première idée.** Une phrase.
-- **Deuxième idée.** Une phrase.
-- **Rester chez vous.** Tout est stocké sur votre Mac. Aucun compte, aucun serveur, aucune télémétrie.
+- **Un clic, une heure de fin.** 15 min, 1 h, 2 h, jusqu'à une heure précise ou sans fin : Éveil dit
+  « éveillé jusqu'à 15 h 40 », puis le Mac retrouve ses réglages de veille.
+- **Tant qu'il le faut.** Tant qu'un téléchargement avance, tant qu'une app tourne, tant que le Mac est
+  sur secteur ; écran allumé, ou écran éteint et Mac éveillé.
+- **Rester chez vous.** Aucun compte, aucun serveur, aucune télémétrie, aucun assistant administrateur.
 
 ## Installation
 
@@ -53,20 +53,30 @@ Le seul échange réseau de Éveil est cette lecture de la version publiée. Auc
 
 ## Notice
 
-<!-- a adapter -->
-
-- **Raccourci global** (⌃⌥⇧Espace par défaut, modifiable dans les Réglages) : affiche ou masque Éveil depuis n'importe quelle app.
-- Fermer la fenêtre ne quitte pas l'app : le raccourci et l'icône de la barre des menus restent actifs. **⌘Q** quitte vraiment.
-- Le lien `eveil://` ouvre la fenêtre principale.
-- **À propos de Éveil** (menu de l'app ou de la barre des menus) : version, licence MIT, liens vers le site et le code source.
+- **Un seul panneau**, dans l'icône de la barre des menus ou dans la fenêtre (Dock) : l'état, les durées,
+  les conditions. Pendant une session : **Arrêter**, **+1 h** et l'interrupteur **Garder l'écran allumé**
+  (allumé, l'écran ne s'éteint pas et ne se verrouille donc pas).
+- **Icône** : soleil creux au repos, plein pendant une session. En mode Automatique, si l'app
+  [Vialet](https://vialet.app) est installée, l'icône n'apparaît que pendant une session ; au repos,
+  le menu de Vialet propose 1 h, Sans fin et Arrêter.
+- **Liens** : `eveil://1h`, `eveil://2h`, `eveil://15min`, `eveil://sans-fin`, `eveil://telechargement`,
+  `eveil://arreter`, et `eveil://` pour la fenêtre. Par exemple `open -g eveil://2h` dans un script.
+- **Téléchargements** : Éveil regarde si un fichier partiel (`.download`, `.crdownload`, `.part`) grossit
+  dans Téléchargements (et les dossiers ajoutés dans les Réglages) ; la session s'arrête après deux minutes
+  sans progrès. macOS demande l'accès au dossier la première fois.
+- **Batterie** : arrêt sous 10, 20 ou 30 % (20 % par défaut) et en mode Économie d'énergie, sur batterie,
+  s'ils surviennent pendant une session.
+- **Capot fermé** : fermer le capot met le Mac en veille, session ou non ; aucune app ne peut l'empêcher.
+  Avec un écran externe et le chargeur branchés, le Mac continue capot fermé et Éveil le garde éveillé.
+- **Raccourci global** facultatif (désactivé par défaut, ⌃⇧⌘Espace) : lance la dernière durée choisie, ou arrête.
+- Fermer la fenêtre ne quitte pas l'app : la session continue. **⌘Q** quitte et arrête la session ;
+  une mise à jour relance l'app et la session reprend.
+- Pour vérifier : `pmset -g assertions | grep Eveil`.
 
 ### Vos données
 
-```text
-~/Library/Application Support/Eveil/eveil.sqlite
-```
-
-Pour sauvegarder, copiez ce dossier. Pour repartir de zéro, quittez l'app et supprimez-le.
+Éveil ne garde que ses réglages et la session en cours, dans les préférences de l'app
+(`defaults read fr.vialet.eveil`).
 
 ## Compiler depuis les sources
 
@@ -91,7 +101,7 @@ make dmg-layout   # fond et disposition de la fenêtre du DMG, dans scripts/dmg 
 
 | Dossier | Contenu |
 |---|---|
-| `Packages/EveilCore` | Noyau sans interface : modèles, base SQLite ([GRDB](https://github.com/groue/GRDB.swift)), logique |
+| `Packages/EveilCore` | Noyau sans interface ni dépendance : sessions, heure de fin, conditions, textes d'état, reprise |
 | `Eveil` | L'application SwiftUI ; `App/Brand.swift` porte son identité |
 | `scripts` | Assemblage de l'app et du DMG ; `scripts/dmg` : fond et disposition de sa fenêtre |
 | `docs` | [Publier une version](docs/publier-une-version.md), [tests](docs/tests.md), notes de version |
