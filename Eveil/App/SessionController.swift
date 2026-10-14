@@ -24,8 +24,8 @@ final class SessionController {
     @ObservationIgnored var calendar = Calendar.autoupdatingCurrent
     /// Horloge (fixe dans le mode capture).
     @ObservationIgnored var clock: () -> Date = { Date() }
-    /// Statut a publier quand il change (texte de la phrase d'etat, actif ou non). Kit 0.2.6 :
-    /// `AppActions.shared.setStatus(...)` et `setVisible(...)` ; d'ici la, rien.
+    /// Statut a publier quand il change (texte de la phrase d'etat, actif ou non) : l'AppDelegate le
+    /// passe a `AppActions.shared.publish(status:active:)`.
     @ObservationIgnored var onStatusChange: ((HubStatus) -> Void)?
 
     @ObservationIgnored private var assertion: PowerAssertion?

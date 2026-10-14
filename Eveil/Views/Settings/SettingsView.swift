@@ -10,13 +10,14 @@ struct SettingsView: View {
 
     var body: some View {
         SettingsScreen(app: Brand.identity, hotKey: HotKeyController.shared, updater: Updater.shared,
-                       menuBar: nil,
+                       menuBar: nil, dock: DockPresence.shared,
                        hotKeyEnabled: Binding(get: { hotKeyEnabled }, set: { on in
                            hotKeyEnabled = on
                            EveilHotKey.apply(on)
                        }),
                        hotKeyHint: "Depuis n\u{2019}importe quelle app\u{00A0}: lance la derni\u{00E8}re dur\u{00E9}e choisie, ou arr\u{00EA}te.",
                        alwaysOnHint: "Fermer la fen\u{00EA}tre ne quitte pas \u{00C9}veil\u{00A0}: une session continue. \u{2318}Q quitte et arr\u{00EA}te la session.",
+                       updateNote: HubPresence.updateNote,
                        width: 480) {
             IconCard()
             if PowerSource.shared.hasBattery { BatteryCard() }
@@ -39,8 +40,8 @@ enum EveilHotKey {
     }
 }
 
-/// Icone de barre des menus : Automatique (propre a Eveil : avec Vialet, visible seulement pendant une
-/// session), Toujours, Jamais.
+/// Icone de barre des menus : Automatique (propre a Eveil : apps rassemblees, visible seulement pendant
+/// une session), Toujours, Jamais.
 private struct IconCard: View {
     @State private var presence = MenuBarPresence.shared
 
@@ -64,11 +65,11 @@ private struct IconCard: View {
     private var legend: String {
         switch presence.mode {
         case .auto:
-            presence.hubInstalled
-                ? "Vialet est install\u{00E9}e\u{00A0}: l\u{2019}ic\u{00F4}ne n\u{2019}appara\u{00EE}t que pendant une session, pour voir l\u{2019}\u{00E9}tat et arr\u{00EA}ter en un clic."
-                : "Visible tant que Vialet n\u{2019}est pas install\u{00E9}e\u{00A0}: soleil creux au repos, plein pendant une session."
+            presence.isInserted
+                ? "Seule app vialet.app de ce Mac\u{00A0}: soleil creux au repos, plein pendant une session."
+                : "Les apps vialet.app sont rassembl\u{00E9}es sous une seule ic\u{00F4}ne\u{00A0}: celle d\u{2019}\u{00C9}veil n\u{2019}appara\u{00EE}t que pendant une session, pour voir l\u{2019}\u{00E9}tat et arr\u{00EA}ter en un clic."
         case .shown: "Toujours visible\u{00A0}: soleil creux au repos, plein pendant une session."
-        case .hidden: "Jamais affich\u{00E9}e\u{00A0}: \u{00C9}veil reste accessible par le Dock, Vialet et eveil://."
+        case .hidden: "Jamais affich\u{00E9}e\u{00A0}: \u{00C9}veil reste accessible par Spotlight, le menu vialet.app et eveil://."
         }
     }
 }

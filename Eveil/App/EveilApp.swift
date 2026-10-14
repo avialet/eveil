@@ -27,8 +27,8 @@ struct EveilApp: App {
         .menuBarExtraStyle(.window)
     }
 
-    /// Mode Automatique propre a Eveil : sans Vialet, l'icone est toujours la ; avec Vialet, seulement
-    /// pendant une session (indicateur et arret en un clic). Toujours et Jamais comme dans les autres apps.
+    /// Mode Automatique propre a Eveil : seule app vialet.app, l'icone est toujours la ; rassemblee (par
+    /// Vialet ou l'icone vialet.app d'une autre app), seulement pendant une session (indicateur et arret en un clic). Toujours et Jamais comme dans les autres apps.
     /// Retirer l'icone de la barre (Cmd-glisser) passe en Jamais.
     private var menuBarInserted: Binding<Bool> {
         let presence = presence, controller = controller
@@ -46,7 +46,7 @@ struct EveilApp: App {
         switch presence.mode {
         case .shown: return true
         case .hidden: return false
-        case .auto: return !presence.hubInstalled || active
+        case .auto: return presence.isInserted || active
         }
     }
 }

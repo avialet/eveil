@@ -29,14 +29,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MainWindowController.shared.install()
         guard !Self.isSnapshot else { return }
         let actions = AppActions.shared
-        actions.register(AppAction("1h", title: "1\u{00A0}h", symbol: "sun.max")) {
+        actions.register(AppAction("1h", title: "1\u{00A0}h", symbol: "sun.max", visible: .idle)) {
             SessionController.shared.start(.minutes(60))
         }
-        actions.register(AppAction("sans-fin", title: "Sans fin", symbol: "infinity")) {
+        actions.register(AppAction("sans-fin", title: "Sans fin", symbol: "infinity", visible: .idle)) {
             SessionController.shared.start(.indefinite)
         }
-        actions.register(AppAction("arreter", title: "Arr\u{00EA}ter", symbol: "stop.circle")) {
+        actions.register(AppAction("arreter", title: "Arr\u{00EA}ter", symbol: "stop.circle", visible: .active)) {
             SessionController.shared.stop()
+        }
+        // Etat de la session dans Vialet ou le menu rassembleur (a chaque changement, pas de decompte).
+        SessionController.shared.onStatusChange = { status in
+            AppActions.shared.publish(status: status.text.isEmpty ? nil : status.text, active: status.active)
         }
         SessionController.shared.launch()
     }
@@ -46,7 +50,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         if runSnapshotIfRequested() { return }
         #endif
-        AppActions.shared.publish()
+        _ = DockPresence.shared
+        HubPresence.start(menuBar: MenuBarPresence.shared, actions: AppActions.shared, updater: Updater.shared)
         if UserDefaults.standard.bool(forKey: Prefs.hotKeyEnabled) { EveilHotKey.apply(true) }
         // Lancement ordinaire (Finder, Spotlight, Dock) : la fenetre. Pas pour une URL ni a la connexion.
         let showWindow = Self.isOrdinaryLaunch(NSAppleEventManager.shared().currentAppleEvent)
@@ -88,6 +93,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         SessionController.shared.terminate()
+        // Le menu rassembleur ne doit pas montrer une session d'une app arretee.
+        AppActions.shared.publish(status: nil, active: false)
     }
 
     /// Fermer la fenetre ne quitte pas : la session continue.
